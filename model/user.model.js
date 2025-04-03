@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema({
   degrees: { type: [String] },
   idProof: { type: String },
   address : { type:String},
-  gender : { type:String}
+  gender : { type:String},
+  profile : {type:String}
 });
 
 // Hash password before saving

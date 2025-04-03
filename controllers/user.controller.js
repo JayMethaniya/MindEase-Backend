@@ -8,11 +8,14 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees ,address,gender } = req.body;
-    const idProof = req.file ? req.file.path : null;
+    const { fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, address, gender } = req.body;
+
+    // Get Cloudinary URLs
+    const idProof = req.files?.idProof ? req.files.idProof[0].path : null;
+    const profile = req.files?.profile ? req.files.profile[0].path : null;
 
     if (role === "doctor" && (!specialization || !hospital || !medicalRegNumber)) {
-      return res.status(400).json({ message: "All doctor fields are required" }); 
+      return res.status(400).json({ message: "All doctor fields are required" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -20,7 +23,7 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const newUser = new User({ fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, idProof ,address,gender });
+    const newUser = new User({ fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, idProof, address, gender, profile });
     await newUser.save();
 
     const token = newUser.generateAuthToken();
@@ -31,6 +34,7 @@ module.exports.registerUser = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 module.exports.loginUser = async (req, res) => {
   try {

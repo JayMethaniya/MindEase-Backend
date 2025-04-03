@@ -1,17 +1,16 @@
 const express = require("express");
 const { body } = require("express-validator");
-const multer = require("../config/multerConfig");
+const upload = require('../middleware/upload.middleware');
+
 const userController = require("../controllers/user.controller");
 const authMiddleware = require("../middleware/user.middleware");
 
 const router = express.Router();
 
-router.post(
-  "/signup",
-  multer.fields([
-    { name: "idProof", maxCount: 1 }, // Expecting 1 file for idProof
-    { name: "profilePhoto", maxCount: 1 } // Expecting 1 file for profilePhoto
-  ]),
+router.post('/signup', upload.fields([
+  { name: 'idProof', maxCount: 1 },
+  { name: 'profile', maxCount: 1 }
+]),
   [
     body("fullName").isLength({ min: 3 }).withMessage("Full name should be at least 3 characters"),
     body("email").isEmail().withMessage("Please provide a valid email"),
