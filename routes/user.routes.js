@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post('/signup', upload.fields([
   { name: 'idProof', maxCount: 1 },
-  { name: 'profile', maxCount: 1 }
+  { name: 'profilePhoto', maxCount: 1 }
 ]),
   [
     body("fullName").isLength({ min: 3 }).withMessage("Full name should be at least 3 characters"),

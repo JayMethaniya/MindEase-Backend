@@ -12,7 +12,7 @@ module.exports.registerUser = async (req, res) => {
 
     // Get Cloudinary URLs
     const idProof = req.files?.idProof ? req.files.idProof[0].path : null;
-    const profile = req.files?.profile ? req.files.profile[0].path : null;
+    const profilePhoto = req.files?.profilePhoto ? req.files.profilePhoto[0].path : null;
 
     if (role === "doctor" && (!specialization || !hospital || !medicalRegNumber)) {
       return res.status(400).json({ message: "All doctor fields are required" });
@@ -23,7 +23,7 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const newUser = new User({ fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, idProof, address, gender, profile });
+    const newUser = new User({ fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, idProof, address, gender, profilePhoto });
     await newUser.save();
 
     const token = newUser.generateAuthToken();
