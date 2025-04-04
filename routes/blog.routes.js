@@ -9,7 +9,7 @@ const blogModel = require('../model/blog.model');
 router.post(
     '/add',
     authMiddleware.authUser, 
-    upload.single('image'),
+    upload.single('blogImage'),
     [
         body('title').notEmpty().withMessage('Title is required'),
         body('content').notEmpty().withMessage('Content is required'),
