@@ -1,6 +1,8 @@
 const User = require("../model/user.model");
 const { validationResult } = require("express-validator");
 const UserService = require("../services/user.service");
+const blogModel = require('../model/blog.model');
+
 module.exports.registerUser = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -81,6 +83,36 @@ module.exports.updateProfile = async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (error) {
     console.error("Profile update error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports.createBlog = async (req, res) => {
+  try {
+    const { title, content, authorId } = req.body;
+    const image = req.files?.blogImage ? req.files.blogImage[0].path : null; // Assuming you're using multer for file uploads
+
+    const newBlog = new blogModel({
+      title,
+      content,
+      authorId,
+      blogImage: image
+    });
+
+    await newBlog.save();
+    res.status(201).json(newBlog);
+  } catch (error) {
+    console.error("Create Blog Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports.getBlogs = async (req, res) => {
+  try {
+    const blogs = await blogModel.find().populate('authorId', 'fullName email');
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Get Blogs Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }; 

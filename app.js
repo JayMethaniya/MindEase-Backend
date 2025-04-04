@@ -19,5 +19,7 @@ const userRoutes = require("./routes/user.routes");
 app.use("/user", userRoutes);
 const moodRoutes = require('./routes/mood.routes')
 app.use("/mood" , moodRoutes)
+const blogRoutes = require("./routes/blog.routes");
+app.use("/blog", blogRoutes);
 
 module.exports = app; // Export the Express app

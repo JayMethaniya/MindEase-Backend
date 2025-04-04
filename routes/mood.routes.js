@@ -18,4 +18,4 @@ router.post(
 // GET route to retrieve moods for a user
 router.get('/:userId', authMiddleware.authUser, moodController.getMoods);
 
-module.exports = router; 
+module.exports = router;
