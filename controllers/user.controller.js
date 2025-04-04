@@ -1,6 +1,6 @@
 const User = require("../model/user.model");
 const { validationResult } = require("express-validator");
-
+const UserService = require("../services/user.service");
 module.exports.registerUser = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -66,3 +66,21 @@ module.exports.getProfile = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+module.exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const updatedData = req.body;
+
+    // If a file is uploaded, add the file URL
+    if (req.file) {
+      updatedData.profilePhoto = req.file.path; // This assumes local storage; replace with Cloudinary URL if needed
+    }
+
+    // Update user profile using the service
+    const updatedUser = await UserService.updateUserProfile(userId, updatedData);
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}; 

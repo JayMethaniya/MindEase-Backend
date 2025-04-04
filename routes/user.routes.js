@@ -21,5 +21,5 @@ router.post('/signup', upload.fields([
 
 router.post("/login", userController.loginUser);
 router.get("/profile", authMiddleware.authUser, userController.getProfile);
-
+router.put("/profile", authMiddleware.authUser, upload.single("profilePhoto"),userController.updateProfile);
 module.exports = router;

@@ -17,3 +17,10 @@ module.exports.createUser = async ({
     });
     return user;
 };
+module.exports.updateUserProfile = async (userId, updatedData) => {
+    const user = await userModel.findByIdAndUpdate(userId, updatedData, { new: true });
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+};
