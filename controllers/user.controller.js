@@ -25,11 +25,24 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const newUser = new User({ fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, idProof, address, gender, profilePhoto });
+    const newUser = new User({ 
+      fullName, 
+      email, 
+      password, 
+      role, 
+      specialization, 
+      hospital, 
+      medicalRegNumber, 
+      degrees, 
+      idProof, 
+      address, 
+      gender, 
+      profilePhoto 
+    });
     await newUser.save();
 
     const token = newUser.generateAuthToken();
-    res.status(201).json({ user: newUser, token });
+    res.status(201).json({ user: { id: newUser._id, fullName: newUser.fullName, email: newUser.email }, token });
 
   } catch (error) {
     console.error("Signup Error:", error);
@@ -53,7 +66,7 @@ module.exports.loginUser = async (req, res) => {
     }
 
     const token = user.generateAuthToken();
-    res.status(200).json({ user, token });
+    res.status(200).json({ user: { id: user._id, fullName: user.fullName, email: user.email }, token });
 
   } catch (error) {
     console.error("Login Error:", error);

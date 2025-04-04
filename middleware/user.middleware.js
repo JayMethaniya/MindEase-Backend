@@ -16,6 +16,7 @@ module.exports.authUser = async (req, res, next) => {
     }
 
     req.user = user;
+    req.userId = user._id;
     next();
   } catch (err) {
     return res.status(401).json({ message: "Unauthorized: Invalid token" });
