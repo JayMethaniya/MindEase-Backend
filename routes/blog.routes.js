@@ -33,7 +33,7 @@ router.get("/recent", async (req, res) => {
   try {
     const recentBlogs = await blogModel
       .find()
-      .populate("authorId", "name")
+      .populate("authorId", "fullName")
       .sort({ createdAt: -1 })
       .limit(10);
 

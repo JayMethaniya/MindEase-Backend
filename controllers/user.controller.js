@@ -10,7 +10,7 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { fullName, email, password, role, specialization, hospital, medicalRegNumber, degrees, address, gender } = req.body;
+    const { fullName, email,phone, password, role, specialization, hospital, medicalRegNumber, degrees, address, gender } = req.body;
 
     // Get Cloudinary URLs
     const idProof = req.files?.idProof ? req.files.idProof[0].path : null;
@@ -28,6 +28,7 @@ module.exports.registerUser = async (req, res) => {
     const newUser = new User({ 
       fullName, 
       email, 
+      phone,
       password, 
       role, 
       specialization, 
@@ -42,7 +43,19 @@ module.exports.registerUser = async (req, res) => {
     await newUser.save();
 
     const token = newUser.generateAuthToken();
-    res.status(201).json({ user: { id: newUser._id, fullName: newUser.fullName, email: newUser.email }, token });
+    res.status(201).json({ 
+      user: { 
+        id: newUser._id, 
+        fullName: newUser.fullName, 
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        address: newUser.address,
+        gender: newUser.gender,
+        profilePhoto: newUser.profilePhoto
+      }, 
+      token 
+    });
 
   } catch (error) {
     console.error("Signup Error:", error);
@@ -66,7 +79,19 @@ module.exports.loginUser = async (req, res) => {
     }
 
     const token = user.generateAuthToken();
-    res.status(200).json({ user: { id: user._id, fullName: user.fullName, email: user.email }, token });
+    res.status(200).json({ 
+      user: { 
+        id: user._id, 
+        fullName: user.fullName, 
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        address: user.address,
+        gender: user.gender,
+        profilePhoto: user.profilePhoto
+      }, 
+      token 
+    });
 
   } catch (error) {
     console.error("Login Error:", error);
