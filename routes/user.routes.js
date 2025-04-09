@@ -21,5 +21,12 @@ router.post('/signup', upload.fields([
 
 router.post("/login", userController.loginUser);
 router.get("/profile", authMiddleware.authUser, userController.getProfile);
-router.put("/profile", authMiddleware.authUser, upload.single("profilePhoto"),userController.updateProfile);
+router.put("/profile", authMiddleware.authUser, upload.single("profilePhoto"), userController.updateProfile);
+router.get("/doctors", authMiddleware.authUser, userController.getDoctors);
+
+// Message routes
+router.get("/messages", authMiddleware.authUser, userController.getMessages);
+router.post("/messages", authMiddleware.authUser, userController.sendMessage);
+router.put("/messages/:messageId/read", authMiddleware.authUser, userController.markMessageAsRead);
+
 module.exports = router;
