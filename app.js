@@ -26,9 +26,7 @@ const moodRoutes = require("./routes/mood.routes");
 app.use("/mood", moodRoutes);
 const blogRoutes = require("./routes/blog.routes");
 app.use("/blog", blogRoutes);
-const supportGroupRoutes = require("./routes/supportGroup.routes");
-app.use("/support-groups", supportGroupRoutes);
 const resourceRoutes = require("./routes/resource.routes");
-app.use("/doctor/resources", resourceRoutes);
+app.use("/resource", resourceRoutes);
 
 module.exports = app; // Export the Express app

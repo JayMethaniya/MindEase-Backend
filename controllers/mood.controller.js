@@ -1,4 +1,4 @@
-const Mood = require("../model/mood.model");
+const Mood = require("../models/mood.model");
 
 module.exports.addMood = async (req, res) => {
   try {

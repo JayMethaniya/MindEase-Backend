@@ -3,7 +3,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const moodController = require('../controllers/mood.controller');
 const authMiddleware = require('../middleware/user.middleware'); // Ensure user is authenticated
-const Mood = require('../model/mood.model');
+const Mood = require('../models/mood.model');
 
 // POST route to add a mood
 router.post(
