@@ -63,6 +63,25 @@ module.exports.registerUser = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+module.exports.getUser = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const user = await User.findById(id).select('-password -idProof'); // Exclude sensitive fields
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Get User Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const mongoose = require('mongoose'); // Add this import at the top
+
+
 
 
 module.exports.loginUser = async (req, res) => {
@@ -101,15 +120,22 @@ module.exports.loginUser = async (req, res) => {
 };
 
 module.exports.getProfile = async (req, res) => {
+  const userId = req.params.id; // Get user ID from route parameters
+
   try {
-    res.status(200).json(req.user);
+    const user = await User.findById(userId).select('-password -idProof'); // Fetch user by ID
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
   } catch (error) {
+    console.error("Get Profile Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 module.exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.params.id; // Get user ID from route parameters
     const updatedData = req.body;
 
     // If a file is uploaded, add the file URL
@@ -125,7 +151,6 @@ module.exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 module.exports.createBlog = async (req, res) => {
   try {
     const { title, content, authorId } = req.body;
@@ -195,72 +220,3 @@ module.exports.getDoctors = async (req, res) => {
   }
 };
 
-module.exports.getMessages = async (req, res) => {
-  try {
-    const { doctorId } = req.query;
-    const userId = req.user._id;
-
-    const query = {
-      $or: [
-        { sender: userId, receiver: doctorId },
-        { sender: doctorId, receiver: userId }
-      ]
-    };
-
-    const messages = await Message.find(query)
-      .populate('sender', 'fullName')
-      .populate('receiver', 'fullName')
-      .sort({ createdAt: 1 });
-
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    res.status(500).json({ message: 'Error fetching messages' });
-  }
-};
-
-module.exports.sendMessage = async (req, res) => {
-  try {
-    const { content, receiverId } = req.body;
-    const senderId = req.user._id;
-
-    const message = new Message({
-      sender: senderId,
-      receiver: receiverId,
-      content
-    });
-
-    await message.save();
-
-    const populatedMessage = await Message.findById(message._id)
-      .populate('sender', 'fullName')
-      .populate('receiver', 'fullName');
-
-    res.status(201).json(populatedMessage);
-  } catch (error) {
-    console.error('Error sending message:', error);
-    res.status(500).json({ message: 'Error sending message' });
-  }
-};
-
-module.exports.markMessageAsRead = async (req, res) => {
-  try {
-    const { messageId } = req.params;
-    const userId = req.user._id;
-
-    const message = await Message.findOneAndUpdate(
-      { _id: messageId, receiver: userId },
-      { isRead: true },
-      { new: true }
-    );
-
-    if (!message) {
-      return res.status(404).json({ message: 'Message not found' });
-    }
-
-    res.json(message);
-  } catch (error) {
-    console.error('Error marking message as read:', error);
-    res.status(500).json({ message: 'Error marking message as read' });
-  }
-}; 

@@ -28,5 +28,8 @@ const blogRoutes = require("./routes/blog.routes");
 app.use("/blog", blogRoutes);
 const resourceRoutes = require("./routes/resource.routes");
 app.use("/resource", resourceRoutes);
-
+const chatRoutes = require("./routes/chat.routes");
+app.use("/chat", chatRoutes);
+const messageRoutes = require("./routes/message.routes");
+app.use("/message", messageRoutes);
 module.exports = app; // Export the Express app
