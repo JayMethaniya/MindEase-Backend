@@ -10,9 +10,9 @@ connectDB();
 
 // Middleware
 app.use(cors({ 
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : "http://localhost:3000", 
+  origin: ["http://localhost:3000", "http://localhost:3001"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true 
 }));
 app.use(express.json());
@@ -32,4 +32,9 @@ const chatRoutes = require("./routes/chat.routes");
 app.use("/chat", chatRoutes);
 const messageRoutes = require("./routes/message.routes");
 app.use("/message", messageRoutes);
+const contactRoutes = require("./routes/contact.routes");
+app.use("/contact", contactRoutes);
+const journalRoutes = require("./routes/journal.routes");
+app.use("/journal", journalRoutes);
+
 module.exports = app; // Export the Express app
