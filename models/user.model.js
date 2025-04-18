@@ -33,9 +33,16 @@ const userSchema = new mongoose.Schema({
   medicalRegNumber: { type: String },
   degrees: { type: [String] },
   idProof: { type: String },
-  address : { type:String},
-  gender : { type:String},
-  profilePhoto : {type:String}
+  street: { type: String },
+  area: { type: String },
+  city: { type: String },
+  state: { type: String },
+  pincode: { 
+    type: String,
+    match: [/^[0-9]{6}$/, "Please provide a valid 6-digit pincode"]
+  },
+  gender: { type: String },
+  profilePhoto: { type: String }
 });
 
 // Hash password before saving

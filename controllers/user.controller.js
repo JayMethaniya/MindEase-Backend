@@ -11,7 +11,7 @@ module.exports.registerUser = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { fullName, email,phone, password, role, specialization, hospital, medicalRegNumber, degrees, address, gender } = req.body;
+    const { fullName, email, phone, password, role, specialization, hospital, medicalRegNumber, degrees, street, area, city, state, pincode, gender } = req.body;
 
     // Get Cloudinary URLs
     const idProof = req.files?.idProof ? req.files.idProof[0].path : null;
@@ -37,11 +37,26 @@ module.exports.registerUser = async (req, res) => {
       medicalRegNumber, 
       degrees, 
       idProof, 
-      address, 
+      street,
+      area,
+      city,
+      state,
+      pincode,
       gender, 
       profilePhoto 
     });
-    await newUser.save();
+
+    try {
+      await newUser.save();
+    } catch (saveError) {
+      if (saveError.name === 'ValidationError') {
+        return res.status(400).json({ 
+          message: "Validation Error", 
+          errors: Object.values(saveError.errors).map(err => err.message) 
+        });
+      }
+      throw saveError;
+    }
 
     const token = newUser.generateAuthToken();
     res.status(201).json({ 
@@ -51,7 +66,11 @@ module.exports.registerUser = async (req, res) => {
         email: newUser.email,
         phone: newUser.phone,
         role: newUser.role,
-        address: newUser.address,
+        street: newUser.street,
+        area: newUser.area,
+        city: newUser.city,
+        state: newUser.state,
+        pincode: newUser.pincode,
         gender: newUser.gender,
         profilePhoto: newUser.profilePhoto
       }, 
@@ -63,6 +82,7 @@ module.exports.registerUser = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 module.exports.getUser = async (req, res) => {
   const id = req.params.id;
 
@@ -80,9 +100,6 @@ module.exports.getUser = async (req, res) => {
 };
 
 const mongoose = require('mongoose'); // Add this import at the top
-
-
-
 
 module.exports.loginUser = async (req, res) => {
   try {
@@ -133,6 +150,7 @@ module.exports.getProfile = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 module.exports.updateProfile = async (req, res) => {
   try {
     const userId = req.params.id; // Get user ID from route parameters
@@ -151,6 +169,7 @@ module.exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 module.exports.createBlog = async (req, res) => {
   try {
     const { title, content, authorId } = req.body;
