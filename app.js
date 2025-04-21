@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./db/db");
+const Admin = require("./models/adminModel");
+const bcrypt = require("bcrypt");
 
 // Initialize Express App
 const app = express();
@@ -10,7 +12,7 @@ connectDB();
 
 // Middleware
 app.use(cors({ 
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:5000"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true 
@@ -36,5 +38,6 @@ const contactRoutes = require("./routes/contact.routes");
 app.use("/contact", contactRoutes);
 const journalRoutes = require("./routes/journal.routes");
 app.use("/journal", journalRoutes);
-
+const adminRoutes = require("./routes/adminRoutes");
+app.use("/admin", adminRoutes);
 module.exports = app; // Export the Express app

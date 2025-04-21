@@ -115,6 +115,12 @@ module.exports.loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // Update login tracking
+    user.lastLogin = new Date();
+    user.loginCount += 1;
+    user.isOnline = true;
+    await user.save();
+
     const token = user.generateAuthToken();
     res.status(200).json({ 
       user: { 
@@ -125,7 +131,10 @@ module.exports.loginUser = async (req, res) => {
         role: user.role,
         address: user.address,
         gender: user.gender,
-        profilePhoto: user.profilePhoto
+        profilePhoto: user.profilePhoto,
+        lastLogin: user.lastLogin,
+        loginCount: user.loginCount,
+        isOnline: user.isOnline
       }, 
       token 
     });
@@ -236,6 +245,138 @@ module.exports.getDoctors = async (req, res) => {
       message: 'Failed to fetch doctors',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+module.exports.getLoginStats = async (req, res) => {
+  try {
+    // Get total users and doctors
+    const totalUsers = await User.countDocuments({ role: 'user' });
+    const totalDoctors = await User.countDocuments({ role: 'doctor' });
+
+    // Get online users and doctors
+    const onlineUsers = await User.countDocuments({ role: 'user', isOnline: true });
+    const onlineDoctors = await User.countDocuments({ role: 'doctor', isOnline: true });
+
+    // Get total logins
+    const totalLogins = await User.aggregate([
+      { $group: { _id: null, total: { $sum: "$loginCount" } } }
+    ]);
+
+    // Get doctor logins
+    const doctorLogins = await User.aggregate([
+      { $match: { role: 'doctor' } },
+      { $group: { _id: null, total: { $sum: "$loginCount" } } }
+    ]);
+
+    res.status(200).json({
+      totalUsers,
+      totalDoctors,
+      onlineUsers,
+      onlineDoctors,
+      totalLogins: totalLogins[0]?.total || 0,
+      doctorLogins: doctorLogins[0]?.total || 0
+    });
+  } catch (error) {
+    console.error("Get Login Stats Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+module.exports.getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // Fixed limit of 10 users per page
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      User.find()
+        .select('-password -idProof')
+        .sort({ lastLogin: -1 }) // Sort by lastLogin in descending order
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments()
+    ]);
+    
+    res.status(200).json({
+      users,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+};
+
+module.exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find and delete the user
+    const user = await User.findByIdAndDelete(id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ 
+      message: 'User deleted successfully',
+      deletedUser: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Error deleting user' });
+  }
+};
+
+module.exports.createUser = async (req, res) => {
+  try {
+    const { name, email, role, password } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    // Create new user
+    const newUser = new User({
+      fullName: name,
+      email,
+      role,
+      password,
+      status: 'active',
+      lastLogin: new Date(),
+      loginCount: 0,
+      isOnline: false
+    });
+
+    await newUser.save();
+
+    // Return user data without sensitive information
+    const userData = {
+      _id: newUser._id,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      role: newUser.role,
+      status: newUser.status,
+      lastLogin: newUser.lastLogin,
+      isOnline: newUser.isOnline
+    };
+
+    res.status(201).json({
+      message: 'User created successfully',
+      user: userData
+    });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Error creating user' });
   }
 };
 

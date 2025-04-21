@@ -42,7 +42,11 @@ const userSchema = new mongoose.Schema({
     match: [/^[0-9]{6}$/, "Please provide a valid 6-digit pincode"]
   },
   gender: { type: String },
-  profilePhoto: { type: String }
+  profilePhoto: { type: String },
+  // Add login tracking fields
+  lastLogin: { type: Date },
+  loginCount: { type: Number, default: 0 },
+  isOnline: { type: Boolean, default: false }
 });
 
 // Hash password before saving
