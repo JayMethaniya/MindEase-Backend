@@ -24,17 +24,31 @@ module.exports.createBlog = async (req, res) => {
     const { title, content } = req.body;
     const image = req.file?.path;
 
+    // Determine the author ID based on who is making the request
+    const authorId = req.admin?._id || req.user?._id;
+    if (!authorId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: No valid author found"
+      });
+    }
+
     const newBlog = new blogModel({
       title,
       content,
-      authorId: req.userId,
+      authorId,
       blogImage: image
     });
 
     await newBlog.save();
+    
+    // Populate author details before sending response
+    const populatedBlog = await blogModel.findById(newBlog._id)
+      .populate('authorId', 'fullName email');
+
     res.status(201).json({
       success: true,
-      data: newBlog
+      data: populatedBlog
     });
   } catch (error) {
     console.error("Create Blog Error:", error);
@@ -49,19 +63,35 @@ module.exports.updateBlog = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content } = req.body;
+    const image = req.file?.path;
 
-    const updatedBlog = await blogModel.findByIdAndUpdate(
-      id,
-      { title, content },
-      { new: true }
-    ).populate('authorId', 'fullName email');
-
-    if (!updatedBlog) {
+    // Check if the user is the author or an admin
+    const blog = await blogModel.findById(id);
+    if (!blog) {
       return res.status(404).json({
         success: false,
         message: "Blog not found"
       });
     }
+
+    const isAuthor = blog.authorId.equals(req.user?._id) || blog.authorId.equals(req.admin?._id);
+    if (!isAuthor) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You can only update your own blogs"
+      });
+    }
+
+    const updateData = { title, content };
+    if (image) {
+      updateData.blogImage = image;
+    }
+
+    const updatedBlog = await blogModel.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).populate('authorId', 'fullName email');
 
     res.status(200).json({
       success: true,
@@ -80,14 +110,24 @@ module.exports.deleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedBlog = await blogModel.findByIdAndDelete(id);
-
-    if (!deletedBlog) {
+    // Check if the user is the author or an admin
+    const blog = await blogModel.findById(id);
+    if (!blog) {
       return res.status(404).json({
         success: false,
         message: "Blog not found"
       });
     }
+
+    const isAuthor = blog.authorId.equals(req.user?._id) || blog.authorId.equals(req.admin?._id);
+    if (!isAuthor) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You can only delete your own blogs"
+      });
+    }
+
+    await blogModel.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,

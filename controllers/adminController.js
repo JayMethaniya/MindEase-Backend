@@ -1,6 +1,4 @@
 const Admin = require('../models/adminModel');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
 const adminLogin = async (req, res) => {
     try {
@@ -13,17 +11,16 @@ const adminLogin = async (req, res) => {
         }
 
         // Verify password
-        const isMatch = await bcrypt.compare(password, admin.password);
+        const isMatch = await admin.comparePassword(password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         // Generate JWT token
-        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
-            expiresIn: '24h'
-        });
+        const token = admin.generateAuthToken();
 
         res.status(200).json({
+            success: true,
             message: 'Login successful',
             token,
             admin: {
@@ -32,7 +29,12 @@ const adminLogin = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error('Admin login error:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error',
+            error: error.message 
+        });
     }
 };
 
