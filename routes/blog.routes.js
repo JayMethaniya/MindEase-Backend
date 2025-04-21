@@ -2,10 +2,13 @@ const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
 const blogController = require("../controllers/blog.controller");
-const authMiddleware = require("../middleware/user.middleware"); // Ensure user is authenticated
-const upload = require("../middleware/upload.middleware"); // Ensure user is authenticated
-const blogModel = require("../models/blog.model");
+const authMiddleware = require("../middleware/user.middleware");
+const upload = require("../middleware/upload.middleware");
 
+// Get all blogs
+router.get("/", authMiddleware.authUser, blogController.getBlogs);
+
+// Create new blog
 router.post(
   "/add",
   authMiddleware.authUser,
@@ -14,20 +17,13 @@ router.post(
     body("title").notEmpty().withMessage("Title is required"),
     body("content").notEmpty().withMessage("Content is required"),
   ],
-  async (req, res) => {
-    const newBlog = new blogModel({
-      title: req.body.title,
-      content: req.body.content,
-      authorId: req.userId,
-      blogImage: req.file?.path,
-    });
-
-    await newBlog.save();
-    res.status(201).json(newBlog);
-  }
+  blogController.createBlog
 );
-router.get("/:userId", authMiddleware.authUser, blogController.getBlogs);
 
+// Update blog
+router.put("/:id", authMiddleware.authUser, blogController.updateBlog);
 
+// Delete blog
+router.delete("/:id", authMiddleware.authUser, blogController.deleteBlog);
 
 module.exports = router;

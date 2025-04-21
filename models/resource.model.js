@@ -4,6 +4,7 @@ const resourceSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
+    trim: true
   },
   videoUrl: {
     type: String,
@@ -19,22 +20,60 @@ const resourceSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['video', 'article', 'initiative'],
+    enum: ['blog', 'video', 'article', 'initiative'],
     required: true,
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
   },
   content: {
     type: String,
     required: true,
   },
+  thumbnail: {
+    type: String,
+    default: ''
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  uploadedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  category: {
+    type: String,
+    required: true
+  },
+  tags: [{
+    type: String
+  }],
+  views: {
+    type: Number,
+    default: 0
+  },
+  likes: {
+    type: Number,
+    default: 0
+  },
+  comments: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    text: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model("Resource", resourceSchema);
