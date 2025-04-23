@@ -250,13 +250,33 @@ module.exports.getDoctors = async (req, res) => {
 
 module.exports.getLoginStats = async (req, res) => {
   try {
+    // Update online status for users who haven't made a request in the last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    await User.updateMany(
+      { 
+        isOnline: true,
+        lastLogin: { $lt: fiveMinutesAgo }
+      },
+      { 
+        isOnline: false 
+      }
+    );
+
     // Get total users and doctors
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalDoctors = await User.countDocuments({ role: 'doctor' });
 
-    // Get online users and doctors
-    const onlineUsers = await User.countDocuments({ role: 'user', isOnline: true });
-    const onlineDoctors = await User.countDocuments({ role: 'doctor', isOnline: true });
+    // Get online users and doctors (only those who are truly online)
+    const onlineUsers = await User.countDocuments({ 
+      role: 'user', 
+      isOnline: true,
+      lastLogin: { $gte: fiveMinutesAgo }
+    });
+    const onlineDoctors = await User.countDocuments({ 
+      role: 'doctor', 
+      isOnline: true,
+      lastLogin: { $gte: fiveMinutesAgo }
+    });
 
     // Get total logins
     const totalLogins = await User.aggregate([
@@ -269,13 +289,20 @@ module.exports.getLoginStats = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$loginCount" } } }
     ]);
 
+    // Get online users details
+    const onlineUsersList = await User.find({
+      isOnline: true,
+      lastLogin: { $gte: fiveMinutesAgo }
+    }).select('fullName role lastLogin');
+
     res.status(200).json({
       totalUsers,
       totalDoctors,
       onlineUsers,
       onlineDoctors,
       totalLogins: totalLogins[0]?.total || 0,
-      doctorLogins: doctorLogins[0]?.total || 0
+      doctorLogins: doctorLogins[0]?.total || 0,
+      onlineUsersList
     });
   } catch (error) {
     console.error("Get Login Stats Error:", error);
@@ -377,6 +404,96 @@ module.exports.createUser = async (req, res) => {
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Error creating user' });
+  }
+};
+
+// Google Login
+module.exports.googleLogin = async (req, res) => {
+  try {
+    const { email, fullName, googleId } = req.body;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user if doesn't exist
+      user = await User.create({
+        email,
+        fullName,
+        googleId,
+        role: "user", // Default role for Google sign-in
+        password: Math.random().toString(36).slice(-8), // Generate random password
+      });
+    } else if (!user.googleId) {
+      // If user exists but hasn't used Google before, update their account
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    // Update login tracking
+    user.lastLogin = new Date();
+    user.loginCount += 1;
+    user.isOnline = true;
+    await user.save();
+
+    // Generate token
+    const token = user.generateAuthToken();
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role
+      },
+      token
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Error during Google login"
+    });
+  }
+};
+
+module.exports.logoutUser = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Find user and update online status
+    const user = await User.findByIdAndUpdate(
+      userId, 
+      { isOnline: false },
+      { new: true } // Return updated document
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify the update was successful
+    if (user.isOnline === true) {
+      return res.status(500).json({ message: "Failed to update online status" });
+    }
+    
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Add a function to update user's last activity
+module.exports.updateLastActivity = async (userId) => {
+  try {
+    await User.findByIdAndUpdate(userId, {
+      lastLogin: new Date(),
+      isOnline: true
+    });
+  } catch (error) {
+    console.error("Update Last Activity Error:", error);
   }
 };
 

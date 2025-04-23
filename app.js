@@ -21,6 +21,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Activity tracking middleware
+app.use(async (req, res, next) => {
+  try {
+    if (req.user && req.user._id) {
+      const userController = require("./controllers/user.controller");
+      await userController.updateLastActivity(req.user._id);
+    }
+  } catch (error) {
+    console.error("Activity tracking error:", error);
+  }
+  next();
+});
+
 // Routes
 const userRoutes = require("./routes/user.routes");
 app.use("/user", userRoutes);

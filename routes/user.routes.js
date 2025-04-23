@@ -21,12 +21,17 @@ router.post('/signup', upload.fields([
 );
 
 router.post("/login", userController.loginUser);
-router.get("/profile/:id", authMiddleware.authUser, userController.getProfile); 
+router.post("/logout", authMiddleware.authUser, userController.logoutUser);
+router.get("/profile/:id", authMiddleware.authUser, userController.getProfile);
 router.put("/profile/:id", authMiddleware.authUser, upload.single("profilePhoto"), userController.updateProfile);
 router.get("/doctors", authMiddleware.authUser, userController.getDoctors);
+router.get("/dashboard-stats", authMiddleware.authUser, userController.getLoginStats);
 router.get("/login-stats", authMiddleware.authAdminOrUser, userController.getLoginStats);
 router.get('/all', authMiddleware.authAdminOrUser, userController.getAllUsers);
 router.delete('/:id', authMiddleware.authAdminOrUser, userController.deleteUser);
 router.post('/create', authMiddleware.authAdminOrUser, userController.createUser);
+
+// Google Login Route
+router.post("/google-login", userController.googleLogin);
 
 module.exports = router;
