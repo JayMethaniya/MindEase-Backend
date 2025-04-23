@@ -12,6 +12,6 @@ router.get("/:id", resourceController.getResourceById);
 // Protected routes (require authentication)
 router.post("/add", authAdminOrUser, resourceController.createResource);
 router.put("/:id", authAdminOrUser, resourceController.updateResource);
-router.delete("/:id", authAdminOrUser, resourceController.deleteResource);
+router.delete("/delete/:id", authAdminOrUser, resourceController.deleteResource);
 
 module.exports = router;
