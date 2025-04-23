@@ -10,14 +10,7 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     required: function() { return this.type === 'video'; },
   },
-  articleContent: {
-    type: String,
-    required: function() { return this.type === 'article'; },
-  },
-  initiativeDetails: {
-    type: String,
-    required: function() { return this.type === 'initiative'; },
-  },
+  
   type: {
     type: String,
     enum: ['blog', 'video', 'article', 'initiative'],
@@ -48,7 +41,6 @@ const resourceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    required: true
   },
   tags: [{
     type: String

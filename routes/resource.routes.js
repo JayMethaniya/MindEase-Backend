@@ -10,7 +10,7 @@ router.get("/", resourceController.getResources);
 router.get("/:id", resourceController.getResourceById);
 
 // Protected routes (require authentication)
-router.post("/", authAdminOrUser, resourceController.createResource);
+router.post("/add", authAdminOrUser, resourceController.createResource);
 router.put("/:id", authAdminOrUser, resourceController.updateResource);
 router.delete("/:id", authAdminOrUser, resourceController.deleteResource);
 
